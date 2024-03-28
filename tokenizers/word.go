@@ -11,6 +11,8 @@ const (
 	TPunctuation = "punctuation"
 )
 
+// Simple word tokenizer. It ignore whitespaces, group punctuation, and return
+// words and numbers.
 func Word(l *langtools.Lexer) langtools.Token {
 	var token *langtools.Token
 
@@ -22,65 +24,36 @@ func Word(l *langtools.Lexer) langtools.Token {
 		c := l.PeekChar()
 		switch {
 		case runes.IsWhitespace(c.Rune):
-			l.EatChar()
+			EatWhitespaces(l, langtools.TString)
+
 		case runes.IsLetter(c.Rune):
-			s := eatWord(l)
-			return langtools.NewToken(TWord, s, c.Line, c.Column)
+			return EatWord(l, TWord)
+
 		case runes.IsDigit(c.Rune):
-			s := eatNumber(l)
-			return langtools.NewToken(TNumber, s, c.Line, c.Column)
+			return EatNumber(l, TNumber)
+
 		default:
-			s := eatPunctuation(l)
-			return langtools.NewToken(TPunctuation, s, c.Line, c.Column)
+			return eatPunctuation(l, TPunctuation)
+
 		}
 	}
 
 	return *token
 }
 
-func eatWord(l *langtools.Lexer) string {
-	c := l.EatChar()
-	word := string(c.Rune)
+func eatPunctuation(l *langtools.Lexer, tp langtools.TokenType) langtools.Token {
+	result := ""
+
+	first := l.PeekChar()
 	for {
-		c = l.PeekChar()
-		if !runes.IsLetter(c.Rune) {
+		c := l.PeekChar()
+		if runes.IsAlphaNumeric(c.Rune) || runes.IsWhitespace(c.Rune) || c.Is(0) {
 			break
 		}
 
-		word += string(c.Rune)
+		result += string(c.Rune)
 		l.EatChar()
 	}
 
-	return word
-}
-
-func eatNumber(l *langtools.Lexer) string {
-	c := l.EatChar()
-	number := string(c.Rune)
-	for {
-		c = l.PeekChar()
-		if !runes.IsDigit(c.Rune) {
-			break
-		}
-
-		number += string(c.Rune)
-		l.EatChar()
-	}
-
-	return number
-}
-
-func eatPunctuation(l *langtools.Lexer) string {
-	c := l.EatChar()
-	punc := string(c.Rune)
-	for {
-		c = l.PeekChar()
-		if runes.IsAlphaNumeric(c.Rune) || runes.IsWhitespace(c.Rune) || runes.IsEof(c.Rune) {
-			break
-		}
-
-		punc += string(c.Rune)
-		l.EatChar()
-	}
-	return punc
+	return langtools.NewToken(tp, result, first.Line, first.Column)
 }

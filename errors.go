@@ -4,6 +4,8 @@ var (
 	ErrInvalidChar         = "invalid UTF-8 encoding"
 	ErrUnexpectedNewline   = "unexpected newline"
 	ErrUnexpectedEndOfFile = "unexpected end of file"
+	ErrUnexpectedDot       = "unexpected '.' character"
+	ErrUnexpectedE         = "unexpected 'e' character"
 )
 
 type LexerError struct {
