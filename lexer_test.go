@@ -1,0 +1,107 @@
+package langtools_test
+
+import (
+	"testing"
+
+	"github.com/renatopp/langtools"
+	"github.com/stretchr/testify/assert"
+)
+
+var helloInput = []byte("Hello, World!")
+var helloOutput = []rune("Hello, World!")
+
+func TestErrorRegistration(t *testing.T) {
+	lexer := langtools.NewLexer(helloInput, nil)
+	lexer.MaxErrors = 2
+
+	assert.False(t, lexer.HasErrors())
+	assert.False(t, lexer.HasTooManyErrors())
+
+	lexer.RegisterError("Error 1")
+	lexer.RegisterError("Error 2")
+	lexer.RegisterError("Error 3")
+
+	assert.True(t, lexer.HasErrors())
+	assert.True(t, lexer.HasTooManyErrors())
+	assert.Len(t, lexer.Errors(), 2)
+}
+
+func TestReadChars(t *testing.T) {
+	lexer := langtools.NewLexer(helloInput, nil)
+
+	assert.Equal(t, helloOutput[0], lexer.PeekChar().Rune)
+	assert.Equal(t, helloOutput[0], lexer.PeekChar().Rune)
+	assert.Equal(t, helloOutput[1], lexer.PeekCharAt(1).Rune)
+	assert.Equal(t, helloOutput[2], lexer.PeekCharAt(2).Rune)
+
+	for _, r := range helloOutput {
+		assert.Equal(t, r, lexer.EatChar().Rune)
+	}
+
+	assert.Equal(t, rune(0), lexer.EatChar().Rune)
+	assert.Equal(t, rune(0), lexer.EatChar().Rune)
+	assert.Equal(t, rune(0), lexer.EatChar().Rune)
+
+	assert.True(t, lexer.IsEof())
+}
+
+func TestReadCharsWithError(t *testing.T) {
+	lexer := langtools.NewLexer(helloInput, nil)
+	lexer.MaxErrors = 2
+
+	lexer.RegisterError("Error 1")
+	lexer.RegisterError("Error 2")
+	lexer.RegisterError("Error 3")
+
+	assert.Equal(t, rune(0), lexer.EatChar().Rune)
+	assert.True(t, lexer.IsEof())
+}
+
+func TestReadTokens(t *testing.T) {
+	lexer := langtools.NewLexer(helloInput, func(l *langtools.Lexer) langtools.Token {
+		c := l.EatChar()
+		return langtools.NewToken(langtools.TUnknown, string(c.Rune), c.Line, c.Column)
+	})
+
+	assert.Equal(t, string(helloOutput[0]), lexer.PeekToken().Literal)
+	assert.Equal(t, string(helloOutput[1]), lexer.PeekTokenAt(1).Literal)
+	assert.Equal(t, string(helloOutput[2]), lexer.PeekTokenAt(2).Literal)
+
+	for i, r := range helloOutput {
+		tk := lexer.EatToken()
+		assert.Equal(t, 1, tk.Line)
+		assert.Equal(t, i+1, tk.Column)
+		assert.Equal(t, string(r), tk.Literal)
+		assert.Equal(t, langtools.TokenType(langtools.TUnknown), tk.Type)
+	}
+
+	println(lexer.EatToken().Type, lexer.EatToken().Literal, lexer.EatToken().Column)
+	println(lexer.EatToken().Type, lexer.EatToken().Literal, lexer.EatToken().Column)
+	assert.Equal(t, langtools.TEof, lexer.EatToken().Type)
+	assert.Equal(t, langtools.TEof, lexer.EatToken().Type)
+	assert.Equal(t, langtools.TEof, lexer.EatToken().Type)
+}
+
+func TestNext(t *testing.T) {
+	lexer := langtools.NewLexer(helloInput, func(l *langtools.Lexer) langtools.Token {
+		c := l.EatChar()
+		return langtools.NewToken(langtools.TUnknown, string(c.Rune), c.Line, c.Column)
+	})
+
+	i := 0
+	for {
+		tk, eof := lexer.Next()
+		if eof {
+			break
+		}
+		assert.Equal(t, string(helloOutput[i]), tk.Literal)
+		i++
+	}
+
+	assert.True(t, lexer.IsEof())
+}
+
+func TestInterface(t *testing.T) {
+	var lexer langtools.ILexer = langtools.NewLexer([]byte{}, nil)
+	assert.Empty(t, lexer.Errors())
+}

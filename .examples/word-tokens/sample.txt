@@ -1,0 +1,5 @@
+These lexers are designed to directly produce syntax trees or abstract syntax trees (ASTs) as output. 
+
+Instead of simply generating tokens, syntax-directed lexers parse the input source code and construct a hierarchical representation of its structure.
+
+This approach is often used in the context of compiler frontends and parsers...
