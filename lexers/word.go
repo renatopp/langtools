@@ -13,7 +13,7 @@ const (
 
 // Simple word tokenizer. It ignore whitespaces, group punctuation, and return
 // words and numbers.
-func Word(l *Lexer) token.Token {
+func Word(l *GenericLexer) token.Token {
 	for {
 		if l.HasTooManyErrors() {
 			break
@@ -42,7 +42,7 @@ func Word(l *Lexer) token.Token {
 	return token.Token{}
 }
 
-func eatPunctuation(l *Lexer, tp token.TokenType) token.Token {
+func eatPunctuation(l *GenericLexer, tp token.TokenType) token.Token {
 	result := ""
 
 	first := l.PeekChar()

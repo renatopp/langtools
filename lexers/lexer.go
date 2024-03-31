@@ -4,16 +4,19 @@ import (
 	"github.com/renatopp/langtools/token"
 )
 
-type ILexer interface {
+type Lexer interface {
 	Errors() []LexerError
 	Next() (token.Token, bool)
+	EatToken() token.Token
+	PeekToken() token.Token
+	PeekTokenAt(int) token.Token
 }
 
-type Lexer struct {
+type GenericLexer struct {
 	MaxErrors int
 
 	scanner     *Scanner
-	tokenizerFn func(*Lexer) token.Token
+	tokenizerFn func(*GenericLexer) token.Token
 
 	nextTokens []token.Token
 	nextChars  []token.Char
@@ -32,15 +35,15 @@ type Lexer struct {
 //
 // Example:
 //
-//	lexer := NewLexer(input, func(l *Lexer) Token {
+//	lexer := NewGenericLexer(input, func(l *Lexer) Token {
 //			c := l.EatChar()
 //			if isDigit(c.Rune) {
 //				return NewToken(NUMBER, c)
 //			}
 //			return NewToken(UNKNOWN, c)
 //	})
-func NewLexer(input []byte, tokenizerFn func(*Lexer) token.Token) *Lexer {
-	return &Lexer{
+func NewGenericLexer(input []byte, tokenizerFn func(*GenericLexer) token.Token) *GenericLexer {
+	return &GenericLexer{
 		MaxErrors:   10,
 		scanner:     NewScanner(input),
 		tokenizerFn: tokenizerFn,
@@ -53,7 +56,7 @@ func NewLexer(input []byte, tokenizerFn func(*Lexer) token.Token) *Lexer {
 
 // Registers a new error found by the lexer. If the number of errors is greater
 // than the maximum allowed, the error is ignored.
-func (l *Lexer) RegisterError(msg string) {
+func (l *GenericLexer) RegisterError(msg string) {
 	if len(l.errors) >= l.MaxErrors {
 		return
 	}
@@ -62,22 +65,22 @@ func (l *Lexer) RegisterError(msg string) {
 }
 
 // Returns the errors found by the lexer.
-func (l *Lexer) Errors() []LexerError {
+func (l *GenericLexer) Errors() []LexerError {
 	return l.errors
 }
 
 // Returns true if the lexer has errors.
-func (l *Lexer) HasErrors() bool {
+func (l *GenericLexer) HasErrors() bool {
 	return len(l.errors) > 0
 }
 
 // Returns true if the lexer has too many errors.
-func (l *Lexer) HasTooManyErrors() bool {
+func (l *GenericLexer) HasTooManyErrors() bool {
 	return len(l.errors) >= l.MaxErrors
 }
 
 // Returns true if the cursor is at the end of the input.
-func (l *Lexer) IsEof() bool {
+func (l *GenericLexer) IsEof() bool {
 	return l.PeekChar().Rune == 0 || l.HasTooManyErrors()
 }
 
@@ -88,7 +91,7 @@ func (l *Lexer) IsEof() bool {
 //	for i, t := range l.Iter() {
 //		// Do something with i and t
 //	}
-func (l *Lexer) Iter() func(func(int, token.Token) bool) {
+func (l *GenericLexer) Iter() func(func(int, token.Token) bool) {
 	return func(f func(int, token.Token) bool) {
 		i := -1
 		for {
@@ -117,7 +120,7 @@ func (l *Lexer) Iter() func(func(int, token.Token) bool) {
 //
 //		// Do something with t
 //	}
-func (l *Lexer) Next() (token token.Token, eof bool) {
+func (l *GenericLexer) Next() (token token.Token, eof bool) {
 	a, b := l.EatToken(), l.IsEof()
 	return a, b
 }
@@ -125,7 +128,7 @@ func (l *Lexer) Next() (token token.Token, eof bool) {
 // Reads the next token from input and consumes it, moving the cursor forward.
 // If the cursor is at the end of the input, it always returns the last valid
 // token.
-func (l *Lexer) EatToken() token.Token {
+func (l *GenericLexer) EatToken() token.Token {
 	t := l.PeekToken()
 	if len(l.nextTokens) > 0 {
 		l.nextTokens = l.nextTokens[1:]
@@ -136,14 +139,14 @@ func (l *Lexer) EatToken() token.Token {
 
 // Reads the current token from the input. The cursor is not moved, so it can be
 // called multiple times without consuming the input.
-func (l *Lexer) PeekToken() token.Token {
+func (l *GenericLexer) PeekToken() token.Token {
 	return l.PeekTokenAt(0)
 }
 
 // Reads the token at the given offset. The offset starts at 0, meaning the
 // current token. Peek does not move the cursor, so it can be called multiple
 // times without consuming the input.
-func (l *Lexer) PeekTokenAt(offset int) token.Token {
+func (l *GenericLexer) PeekTokenAt(offset int) token.Token {
 	for len(l.nextTokens) <= offset {
 		if l.eof != nil {
 			return *l.eof
@@ -162,7 +165,7 @@ func (l *Lexer) PeekTokenAt(offset int) token.Token {
 
 // Reads the next character from input and consumes it, moving the cursor
 // forward. If the cursor is at the end of the input, it returns an empty char.
-func (l *Lexer) EatChar() token.Char {
+func (l *GenericLexer) EatChar() token.Char {
 	c := l.PeekChar()
 	if len(l.nextChars) > 0 {
 		l.nextChars = l.nextChars[1:]
@@ -172,14 +175,14 @@ func (l *Lexer) EatChar() token.Char {
 
 // Reads the current character from the input. The cursor is not moved, so it
 // can be called multiple times without consuming the input.
-func (l *Lexer) PeekChar() token.Char {
+func (l *GenericLexer) PeekChar() token.Char {
 	return l.PeekCharAt(0)
 }
 
 // Reads the character at the given offset. The offset starts a 0, meaning the
 // current character. Peek does not move the cursor, so it can be called
 // multiple times without consuming the input.
-func (l *Lexer) PeekCharAt(offset int) token.Char {
+func (l *GenericLexer) PeekCharAt(offset int) token.Char {
 	for len(l.nextChars) <= offset {
 		if l.HasTooManyErrors() {
 			return token.Char{Rune: 0, Size: 1, Line: 1, Column: 1}

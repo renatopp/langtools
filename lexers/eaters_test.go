@@ -12,7 +12,7 @@ func TestString(t *testing.T) {
 	input := []byte(`"hél'lo"`)
 	expected := `hél'lo`
 
-	l := lexers.NewLexer(input, func(l *lexers.Lexer) token.Token {
+	l := lexers.NewGenericLexer(input, func(l *lexers.GenericLexer) token.Token {
 		return lexers.EatString(l, token.TString)
 	})
 	token, _ := l.Next()
@@ -22,7 +22,7 @@ func TestString(t *testing.T) {
 func TestStringError(t *testing.T) {
 	input := []byte(`"hél'lo`)
 
-	l := lexers.NewLexer(input, func(l *lexers.Lexer) token.Token {
+	l := lexers.NewGenericLexer(input, func(l *lexers.GenericLexer) token.Token {
 		return lexers.EatString(l, token.TString)
 	})
 	l.Next()
@@ -33,7 +33,7 @@ func TestRawString(t *testing.T) {
 	input := []byte("`\"hello\nworld\"`")
 	expected := "\"hello\nworld\""
 
-	l := lexers.NewLexer(input, func(l *lexers.Lexer) token.Token {
+	l := lexers.NewGenericLexer(input, func(l *lexers.GenericLexer) token.Token {
 		return lexers.EatRawString(l, token.TString)
 	})
 	token, _ := l.Next()
@@ -43,7 +43,7 @@ func TestRawString(t *testing.T) {
 func TestRawStringError(t *testing.T) {
 	input := []byte("`\"hello\nworld\"")
 
-	l := lexers.NewLexer(input, func(l *lexers.Lexer) token.Token {
+	l := lexers.NewGenericLexer(input, func(l *lexers.GenericLexer) token.Token {
 		return lexers.EatRawString(l, token.TString)
 	})
 	l.Next()
@@ -71,7 +71,7 @@ func TestNumber(t *testing.T) {
 	}
 
 	for i, input := range inputs {
-		l := lexers.NewLexer(input, func(l *lexers.Lexer) token.Token {
+		l := lexers.NewGenericLexer(input, func(l *lexers.GenericLexer) token.Token {
 			return lexers.EatNumber(l, token.TNumber)
 		})
 		token, _ := l.Next()
@@ -87,7 +87,7 @@ func TestNumberError(t *testing.T) {
 	}
 
 	for _, input := range inputs {
-		l := lexers.NewLexer(input, func(l *lexers.Lexer) token.Token {
+		l := lexers.NewGenericLexer(input, func(l *lexers.GenericLexer) token.Token {
 			return lexers.EatNumber(l, token.TString)
 		})
 		l.Next()
@@ -110,7 +110,7 @@ func TestInteger(t *testing.T) {
 	}
 
 	for i, input := range inputs {
-		l := lexers.NewLexer(input, func(l *lexers.Lexer) token.Token {
+		l := lexers.NewGenericLexer(input, func(l *lexers.GenericLexer) token.Token {
 			return lexers.EatInteger(l, token.TNumber)
 		})
 		token, _ := l.Next()
@@ -135,7 +135,7 @@ func TestHexadecimal(t *testing.T) {
 	}
 
 	for i, input := range inputs {
-		l := lexers.NewLexer(input, func(l *lexers.Lexer) token.Token {
+		l := lexers.NewGenericLexer(input, func(l *lexers.GenericLexer) token.Token {
 			return lexers.EatHexadecimal(l, token.TNumber)
 		})
 		token, _ := l.Next()
@@ -160,7 +160,7 @@ func TestOctal(t *testing.T) {
 	}
 
 	for i, input := range inputs {
-		l := lexers.NewLexer(input, func(l *lexers.Lexer) token.Token {
+		l := lexers.NewGenericLexer(input, func(l *lexers.GenericLexer) token.Token {
 			return lexers.EatOctal(l, token.TNumber)
 		})
 		token, _ := l.Next()
@@ -183,7 +183,7 @@ func TestBinary(t *testing.T) {
 	}
 
 	for i, input := range inputs {
-		l := lexers.NewLexer(input, func(l *lexers.Lexer) token.Token {
+		l := lexers.NewGenericLexer(input, func(l *lexers.GenericLexer) token.Token {
 			return lexers.EatBinary(l, token.TNumber)
 		})
 		token, _ := l.Next()
@@ -202,7 +202,7 @@ func TestWhitespaces(t *testing.T) {
 	}
 
 	for i, input := range inputs {
-		l := lexers.NewLexer(input, func(l *lexers.Lexer) token.Token {
+		l := lexers.NewGenericLexer(input, func(l *lexers.GenericLexer) token.Token {
 			return lexers.EatWhitespaces(l, token.TNumber)
 		})
 		token, _ := l.Next()
@@ -221,7 +221,7 @@ func TestNewlines(t *testing.T) {
 	}
 
 	for i, input := range inputs {
-		l := lexers.NewLexer(input, func(l *lexers.Lexer) token.Token {
+		l := lexers.NewGenericLexer(input, func(l *lexers.GenericLexer) token.Token {
 			return lexers.EatNewlines(l, token.TNumber)
 		})
 		token, _ := l.Next()
@@ -244,7 +244,7 @@ func TestIdentifier(t *testing.T) {
 	}
 
 	for i, input := range inputs {
-		l := lexers.NewLexer(input, func(l *lexers.Lexer) token.Token {
+		l := lexers.NewGenericLexer(input, func(l *lexers.GenericLexer) token.Token {
 			return lexers.EatIdentifier(l, token.TNumber)
 		})
 		token, _ := l.Next()
@@ -269,7 +269,7 @@ func TestWord(t *testing.T) {
 	}
 
 	for i, input := range inputs {
-		l := lexers.NewLexer(input, func(l *lexers.Lexer) token.Token {
+		l := lexers.NewGenericLexer(input, func(l *lexers.GenericLexer) token.Token {
 			return lexers.EatWord(l, token.TNumber)
 		})
 		token, _ := l.Next()
@@ -296,7 +296,7 @@ func TestUntilEndOfLine(t *testing.T) {
 	}
 
 	for i, input := range inputs {
-		l := lexers.NewLexer(input, func(l *lexers.Lexer) token.Token {
+		l := lexers.NewGenericLexer(input, func(l *lexers.GenericLexer) token.Token {
 			return lexers.EatUntilEndOfLine(l, token.TNumber)
 		})
 		token, _ := l.Next()

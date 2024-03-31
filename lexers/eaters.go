@@ -7,7 +7,7 @@ import (
 	"github.com/renatopp/langtools/token"
 )
 
-func EatString(l *Lexer, tp token.TokenType) token.Token {
+func EatString(l *GenericLexer, tp token.TokenType) token.Token {
 	result := ""
 	escaping := false
 	first := l.EatChar()
@@ -55,7 +55,7 @@ func EatString(l *Lexer, tp token.TokenType) token.Token {
 	return token.NewToken(tp, result, first.Line, first.Column)
 }
 
-func EatRawString(l *Lexer, tp token.TokenType) token.Token {
+func EatRawString(l *GenericLexer, tp token.TokenType) token.Token {
 	result := ""
 	escaping := false
 	first := l.EatChar()
@@ -97,7 +97,7 @@ func EatRawString(l *Lexer, tp token.TokenType) token.Token {
 	return token.NewToken(tp, result, first.Line, first.Column)
 }
 
-func EatNumber(l *Lexer, tp token.TokenType) token.Token {
+func EatNumber(l *GenericLexer, tp token.TokenType) token.Token {
 	result := ""
 	dot := false
 	exp := false
@@ -145,7 +145,7 @@ func EatNumber(l *Lexer, tp token.TokenType) token.Token {
 	return token.NewToken(tp, result, first.Line, first.Column)
 }
 
-func EatInteger(l *Lexer, tp token.TokenType) token.Token {
+func EatInteger(l *GenericLexer, tp token.TokenType) token.Token {
 	result := ""
 
 	first := l.PeekChar()
@@ -162,7 +162,7 @@ func EatInteger(l *Lexer, tp token.TokenType) token.Token {
 	return token.NewToken(tp, result, first.Line, first.Column)
 }
 
-func EatHexadecimal(l *Lexer, tp token.TokenType) token.Token {
+func EatHexadecimal(l *GenericLexer, tp token.TokenType) token.Token {
 	result := ""
 
 	first := l.EatChar()
@@ -186,7 +186,7 @@ func EatHexadecimal(l *Lexer, tp token.TokenType) token.Token {
 	return token.NewToken(tp, result, first.Line, first.Column)
 }
 
-func EatOctal(l *Lexer, tp token.TokenType) token.Token {
+func EatOctal(l *GenericLexer, tp token.TokenType) token.Token {
 	result := ""
 
 	first := l.EatChar()
@@ -207,7 +207,7 @@ func EatOctal(l *Lexer, tp token.TokenType) token.Token {
 	return token.NewToken(tp, result, first.Line, first.Column)
 }
 
-func EatBinary(l *Lexer, tp token.TokenType) token.Token {
+func EatBinary(l *GenericLexer, tp token.TokenType) token.Token {
 	result := ""
 
 	first := l.EatChar()
@@ -231,7 +231,7 @@ func EatBinary(l *Lexer, tp token.TokenType) token.Token {
 	return token.NewToken(tp, result, first.Line, first.Column)
 }
 
-func EatWhitespaces(l *Lexer, tp token.TokenType) token.Token {
+func EatWhitespaces(l *GenericLexer, tp token.TokenType) token.Token {
 	result := ""
 
 	first := l.PeekChar()
@@ -248,7 +248,7 @@ func EatWhitespaces(l *Lexer, tp token.TokenType) token.Token {
 	return token.NewToken(tp, result, first.Line, first.Column)
 }
 
-func EatNewlines(l *Lexer, tp token.TokenType) token.Token {
+func EatNewlines(l *GenericLexer, tp token.TokenType) token.Token {
 	result := ""
 
 	first := l.PeekChar()
@@ -265,7 +265,7 @@ func EatNewlines(l *Lexer, tp token.TokenType) token.Token {
 	return token.NewToken(tp, result, first.Line, first.Column)
 }
 
-func EatIdentifier(l *Lexer, tp token.TokenType) token.Token {
+func EatIdentifier(l *GenericLexer, tp token.TokenType) token.Token {
 	result := ""
 
 	first := l.PeekChar()
@@ -282,7 +282,7 @@ func EatIdentifier(l *Lexer, tp token.TokenType) token.Token {
 	return token.NewToken(tp, result, first.Line, first.Column)
 }
 
-func EatWord(l *Lexer, tp token.TokenType) token.Token {
+func EatWord(l *GenericLexer, tp token.TokenType) token.Token {
 	result := ""
 
 	first := l.PeekChar()
@@ -299,7 +299,7 @@ func EatWord(l *Lexer, tp token.TokenType) token.Token {
 	return token.NewToken(tp, result, first.Line, first.Column)
 }
 
-func EatUntilEndOfLine(l *Lexer, tp token.TokenType) token.Token {
+func EatUntilEndOfLine(l *GenericLexer, tp token.TokenType) token.Token {
 	result := ""
 
 	first := l.PeekChar()

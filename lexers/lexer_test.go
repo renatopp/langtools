@@ -12,7 +12,7 @@ var helloInput = []byte("Hello, World!")
 var helloOutput = []rune("Hello, World!")
 
 func TestErrorRegistration(t *testing.T) {
-	lexer := lexers.NewLexer(helloInput, nil)
+	lexer := lexers.NewGenericLexer(helloInput, nil)
 	lexer.MaxErrors = 2
 
 	assert.False(t, lexer.HasErrors())
@@ -28,7 +28,7 @@ func TestErrorRegistration(t *testing.T) {
 }
 
 func TestReadChars(t *testing.T) {
-	lexer := lexers.NewLexer(helloInput, nil)
+	lexer := lexers.NewGenericLexer(helloInput, nil)
 
 	assert.Equal(t, helloOutput[0], lexer.PeekChar().Rune)
 	assert.Equal(t, helloOutput[0], lexer.PeekChar().Rune)
@@ -47,7 +47,7 @@ func TestReadChars(t *testing.T) {
 }
 
 func TestReadCharsWithError(t *testing.T) {
-	lexer := lexers.NewLexer(helloInput, nil)
+	lexer := lexers.NewGenericLexer(helloInput, nil)
 	lexer.MaxErrors = 2
 
 	lexer.RegisterError("Error 1")
@@ -59,7 +59,7 @@ func TestReadCharsWithError(t *testing.T) {
 }
 
 func TestReadTokens(t *testing.T) {
-	lexer := lexers.NewLexer(helloInput, func(l *lexers.Lexer) token.Token {
+	lexer := lexers.NewGenericLexer(helloInput, func(l *lexers.GenericLexer) token.Token {
 		c := l.EatChar()
 		if c.Is(0) {
 			return token.NewToken(token.TEof, "", c.Line, c.Column)
@@ -87,7 +87,7 @@ func TestReadTokens(t *testing.T) {
 }
 
 func TestNext(t *testing.T) {
-	lexer := lexers.NewLexer(helloInput, func(l *lexers.Lexer) token.Token {
+	lexer := lexers.NewGenericLexer(helloInput, func(l *lexers.GenericLexer) token.Token {
 		c := l.EatChar()
 		return token.NewToken(token.TUnknown, string(c.Rune), c.Line, c.Column)
 	})
@@ -106,6 +106,6 @@ func TestNext(t *testing.T) {
 }
 
 func TestInterface(t *testing.T) {
-	var lexer lexers.ILexer = lexers.NewLexer([]byte{}, nil)
+	var lexer lexers.Lexer = lexers.NewGenericLexer([]byte{}, nil)
 	assert.Empty(t, lexer.Errors())
 }
