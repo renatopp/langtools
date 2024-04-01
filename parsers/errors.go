@@ -1,9 +1,9 @@
 package parsers
 
-import "github.com/renatopp/langtools/token"
+import "github.com/renatopp/langtools/tokens"
 
 type ParserError struct {
-	Token token.Token
+	Token tokens.Token
 	Msg   string
 }
 

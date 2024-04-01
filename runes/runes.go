@@ -22,8 +22,13 @@ func IsLetter(r rune) bool {
 var IsAlpha = IsLetter
 
 // Check if a rune is a whitespace (space, tab, newline or carriage return)
-func IsWhitespace(r rune) bool {
+func IsWhiteSpace(r rune) bool {
 	return r == ' ' || r == '\t' || r == '\n' || r == '\r'
+}
+
+// Check if a rune is a space (space, tab or carriage return)
+func IsSpace(r rune) bool {
+	return r == ' ' || r == '\t' || r == '\r'
 }
 
 // Check if a rune is the end of file (rune 0)

@@ -1,28 +1,33 @@
 package lexers
 
 import (
-	"github.com/renatopp/langtools/token"
+	"strconv"
+
+	"github.com/renatopp/langtools/runes"
+	"github.com/renatopp/langtools/tokens"
 )
 
 type Lexer interface {
 	Errors() []LexerError
-	Next() (token.Token, bool)
-	EatToken() token.Token
-	PeekToken() token.Token
-	PeekTokenAt(int) token.Token
+	HasErrors() bool
+	Next() (tokens.Token, bool)
+	EatToken() tokens.Token
+	PeekToken() tokens.Token
+	PeekTokenAt(int) tokens.Token
 }
 
-type GenericLexer struct {
-	MaxErrors int
+type BaseLexer struct {
+	MaxErrors   int
+	TokenizerFn func(*BaseLexer) tokens.Token
 
-	scanner     *Scanner
-	tokenizerFn func(*GenericLexer) token.Token
-
-	nextTokens []token.Token
-	nextChars  []token.Char
+	scanner    *Scanner
+	nextTokens []tokens.Token
+	nextChars  []tokens.Char
 	errors     []LexerError
-	eof        *token.Token
+	eof        *tokens.Token
 }
+
+type TokenizerFn func(*BaseLexer) tokens.Token
 
 // Creates a new lexer with the given input and tokenizerFn.
 //
@@ -35,28 +40,30 @@ type GenericLexer struct {
 //
 // Example:
 //
-//	lexer := NewGenericLexer(input, func(l *Lexer) Token {
+//	lexer := NewBaseLexer(input, func(l *Lexer) Token {
 //			c := l.EatChar()
 //			if isDigit(c.Rune) {
 //				return NewToken(NUMBER, c)
 //			}
 //			return NewToken(UNKNOWN, c)
 //	})
-func NewGenericLexer(input []byte, tokenizerFn func(*GenericLexer) token.Token) *GenericLexer {
-	return &GenericLexer{
+func NewBaseLexer(input []byte, tokenizerFn TokenizerFn) *BaseLexer {
+	l := &BaseLexer{
 		MaxErrors:   10,
+		TokenizerFn: tokenizerFn,
 		scanner:     NewScanner(input),
-		tokenizerFn: tokenizerFn,
-		nextTokens:  make([]token.Token, 0),
-		nextChars:   make([]token.Char, 0),
+		nextTokens:  make([]tokens.Token, 0),
+		nextChars:   make([]tokens.Char, 0),
 		errors:      make([]LexerError, 0),
 		eof:         nil,
 	}
+
+	return l
 }
 
 // Registers a new error found by the lexer. If the number of errors is greater
 // than the maximum allowed, the error is ignored.
-func (l *GenericLexer) RegisterError(msg string) {
+func (l *BaseLexer) RegisterError(msg string) {
 	if len(l.errors) >= l.MaxErrors {
 		return
 	}
@@ -65,22 +72,22 @@ func (l *GenericLexer) RegisterError(msg string) {
 }
 
 // Returns the errors found by the lexer.
-func (l *GenericLexer) Errors() []LexerError {
+func (l *BaseLexer) Errors() []LexerError {
 	return l.errors
 }
 
 // Returns true if the lexer has errors.
-func (l *GenericLexer) HasErrors() bool {
+func (l *BaseLexer) HasErrors() bool {
 	return len(l.errors) > 0
 }
 
 // Returns true if the lexer has too many errors.
-func (l *GenericLexer) HasTooManyErrors() bool {
+func (l *BaseLexer) HasTooManyErrors() bool {
 	return len(l.errors) >= l.MaxErrors
 }
 
 // Returns true if the cursor is at the end of the input.
-func (l *GenericLexer) IsEof() bool {
+func (l *BaseLexer) IsEof() bool {
 	return l.PeekChar().Rune == 0 || l.HasTooManyErrors()
 }
 
@@ -91,8 +98,8 @@ func (l *GenericLexer) IsEof() bool {
 //	for i, t := range l.Iter() {
 //		// Do something with i and t
 //	}
-func (l *GenericLexer) Iter() func(func(int, token.Token) bool) {
-	return func(f func(int, token.Token) bool) {
+func (l *BaseLexer) Iter() func(func(int, tokens.Token) bool) {
+	return func(f func(int, tokens.Token) bool) {
 		i := -1
 		for {
 			i++
@@ -120,15 +127,30 @@ func (l *GenericLexer) Iter() func(func(int, token.Token) bool) {
 //
 //		// Do something with t
 //	}
-func (l *GenericLexer) Next() (token token.Token, eof bool) {
+func (l *BaseLexer) Next() (token tokens.Token, eof bool) {
 	a, b := l.EatToken(), l.IsEof()
 	return a, b
+}
+
+// Returns all the tokens from the input. This function will consume all the
+// input and return all the tokens found. If the lexer has too many errors, it
+// will return only the tokens found until the error limit is reached.
+func (l *BaseLexer) All() []tokens.Token {
+	tokens := make([]tokens.Token, 0)
+	for {
+		t, eof := l.Next()
+		tokens = append(tokens, t)
+		if eof {
+			break
+		}
+	}
+	return tokens
 }
 
 // Reads the next token from input and consumes it, moving the cursor forward.
 // If the cursor is at the end of the input, it always returns the last valid
 // token.
-func (l *GenericLexer) EatToken() token.Token {
+func (l *BaseLexer) EatToken() tokens.Token {
 	t := l.PeekToken()
 	if len(l.nextTokens) > 0 {
 		l.nextTokens = l.nextTokens[1:]
@@ -139,21 +161,21 @@ func (l *GenericLexer) EatToken() token.Token {
 
 // Reads the current token from the input. The cursor is not moved, so it can be
 // called multiple times without consuming the input.
-func (l *GenericLexer) PeekToken() token.Token {
+func (l *BaseLexer) PeekToken() tokens.Token {
 	return l.PeekTokenAt(0)
 }
 
 // Reads the token at the given offset. The offset starts at 0, meaning the
 // current token. Peek does not move the cursor, so it can be called multiple
 // times without consuming the input.
-func (l *GenericLexer) PeekTokenAt(offset int) token.Token {
+func (l *BaseLexer) PeekTokenAt(offset int) tokens.Token {
 	for len(l.nextTokens) <= offset {
 		if l.eof != nil {
 			return *l.eof
 		}
 
-		t := l.tokenizerFn(l)
-		if l.HasTooManyErrors() || t.Type == token.TEof {
+		t := l.TokenizerFn(l)
+		if l.HasTooManyErrors() || t.Type == tokens.EOF {
 			l.eof = &t
 		}
 
@@ -165,7 +187,7 @@ func (l *GenericLexer) PeekTokenAt(offset int) token.Token {
 
 // Reads the next character from input and consumes it, moving the cursor
 // forward. If the cursor is at the end of the input, it returns an empty char.
-func (l *GenericLexer) EatChar() token.Char {
+func (l *BaseLexer) EatChar() tokens.Char {
 	c := l.PeekChar()
 	if len(l.nextChars) > 0 {
 		l.nextChars = l.nextChars[1:]
@@ -175,17 +197,17 @@ func (l *GenericLexer) EatChar() token.Char {
 
 // Reads the current character from the input. The cursor is not moved, so it
 // can be called multiple times without consuming the input.
-func (l *GenericLexer) PeekChar() token.Char {
+func (l *BaseLexer) PeekChar() tokens.Char {
 	return l.PeekCharAt(0)
 }
 
 // Reads the character at the given offset. The offset starts a 0, meaning the
 // current character. Peek does not move the cursor, so it can be called
 // multiple times without consuming the input.
-func (l *GenericLexer) PeekCharAt(offset int) token.Char {
+func (l *BaseLexer) PeekCharAt(offset int) tokens.Char {
 	for len(l.nextChars) <= offset {
 		if l.HasTooManyErrors() {
-			return token.Char{Rune: 0, Size: 1, Line: 1, Column: 1}
+			return tokens.Char{Rune: 0, Size: 1, Line: 1, Column: 1}
 		}
 
 		char, err := l.scanner.Next()
@@ -196,4 +218,370 @@ func (l *GenericLexer) PeekCharAt(offset int) token.Char {
 	}
 
 	return l.nextChars[offset]
+}
+
+// Consumes all the characters that composes a string. This function will
+// consider the first character as the delimiter of the string, and will stop
+// when it finds the same character again. If the string is not closed, it will
+// register an error. If the string contains a newline, it will register an
+// error and ignore the newline. If you need to consume a string with a newline
+// character, use `EatRawString` instead.
+func (l *BaseLexer) EatString() tokens.Token {
+	result := ""
+	escaping := false
+	first := l.EatChar()
+	for {
+		c := l.PeekChar()
+
+		if c.Is('\n') {
+			// Ignoring newlines
+			l.RegisterError(ErrUnexpectedNewline)
+			l.EatChar()
+			continue
+
+		} else if l.IsEof() {
+			// Stopping at EOF
+			l.RegisterError(ErrUnexpectedEndOfFile)
+			break
+
+		} else if !escaping && c.Is(first.Rune) {
+			// End of string
+			break
+
+		} else if !escaping && c.Is('\\') {
+			// Starting Escaping
+			escaping = true
+			l.EatChar()
+			continue
+
+		} else if escaping && !c.Is(first.Rune) {
+			// Ending Escaping
+			escaping = false
+			r, err := strconv.Unquote(`"\` + string(c.Rune) + `"`)
+			if err != nil {
+				l.RegisterError(err.Error())
+				l.EatChar()
+				continue
+			}
+			c.Rune = rune(r[0])
+		}
+
+		result += string(c.Rune)
+		l.EatChar()
+	}
+
+	l.EatChar()
+	return tokens.NewToken(tokens.UNKNOWN, result, first.Line, first.Column)
+}
+
+// Consumes all the characters that composes a raw string. This function will
+// consider the first character as the delimiter of the string, and will stop
+// when it finds the same character again. If the string is not closed, it will
+// register an error.
+//
+// This function will record the string as it was written, meaning that any
+// escape character will be kept as it is, including new lines. If you need to
+// ignore new lines, use `EatString` instead.
+func (l *BaseLexer) EatRawString() tokens.Token {
+	result := ""
+	escaping := false
+	first := l.EatChar()
+	for {
+		c := l.PeekChar()
+
+		if l.IsEof() {
+			// Stopping at EOF
+			l.RegisterError(ErrUnexpectedEndOfFile)
+			break
+
+		} else if !escaping && c.Is(first.Rune) {
+			// End of string
+			break
+
+		} else if !escaping && c.Is('\\') {
+			// Starting Escaping
+			escaping = true
+			l.EatChar()
+			continue
+
+		} else if escaping && !c.Is(first.Rune) {
+			// Ending Escaping
+			escaping = false
+			r, err := strconv.Unquote(`"\` + string(c.Rune) + `"`)
+			if err != nil {
+				l.RegisterError(err.Error())
+				l.EatChar()
+				continue
+			}
+			c.Rune = rune(r[0])
+		}
+
+		result += string(c.Rune)
+		l.EatChar()
+	}
+
+	l.EatChar()
+	return tokens.NewToken(tokens.UNKNOWN, result, first.Line, first.Column)
+}
+
+// Consumes all the characters that composes all common cases of numbers.
+// Including:
+//
+// - Integers: `123`
+// - Floats: `123.32`
+// - Exponents: `123e32`
+// - Floats with Exponents: `123.32e32`
+// - Exponents with signal: `123e+32`
+func (l *BaseLexer) EatNumber() tokens.Token {
+	result := ""
+	dot := false
+	exp := false
+
+	first := l.PeekChar()
+	for {
+		c := l.PeekChar()
+
+		if c.Is('.') {
+			if dot || exp {
+				l.RegisterError(ErrUnexpectedDot)
+				l.EatChar()
+				continue
+			}
+
+			dot = true
+			result += string(c.Rune)
+
+		} else if c.Is('e') || c.Is('E') {
+			if exp {
+				l.RegisterError(ErrUnexpectedE)
+				l.EatChar()
+				continue
+			}
+
+			exp = true
+			result += string(c.Rune)
+
+			next := l.PeekCharAt(1)
+			if next.Is('+') || next.Is('-') {
+				l.EatChar()
+				result += string(next.Rune)
+			}
+
+		} else if runes.IsDigit(c.Rune) {
+			result += string(c.Rune)
+
+		} else {
+			break
+		}
+
+		l.EatChar()
+	}
+
+	return tokens.NewToken(tokens.UNKNOWN, result, first.Line, first.Column)
+}
+
+// Consumes all the characters that composes an integer number.
+func (l *BaseLexer) EatInteger() tokens.Token {
+	result := ""
+
+	first := l.PeekChar()
+	for {
+		c := l.PeekChar()
+		if !runes.IsDigit(c.Rune) {
+			break
+		}
+
+		result += string(c.Rune)
+		l.EatChar()
+	}
+
+	return tokens.NewToken(tokens.UNKNOWN, result, first.Line, first.Column)
+}
+
+// Consumes all the characters that composes a hexadecimal number. Considering
+// `0x` or `0X` as optional prefix.
+func (l *BaseLexer) EatHexadecimal() tokens.Token {
+	result := ""
+
+	first := l.EatChar()
+	next := l.PeekChar()
+	if first.Is('0') && (next.Is('x') || next.Is('X')) {
+		l.EatChar()
+	} else {
+		result += string(first.Rune)
+	}
+
+	for {
+		c := l.PeekChar()
+		if !runes.IsHexadecimal(c.Rune) {
+			break
+		}
+
+		result += string(c.Rune)
+		l.EatChar()
+	}
+
+	return tokens.NewToken(tokens.UNKNOWN, result, first.Line, first.Column)
+}
+
+// Consumes all the characters that composes an octal number. Considering `0`
+// as optional prefix.
+func (l *BaseLexer) EatOctal() tokens.Token {
+	result := ""
+
+	first := l.EatChar()
+	if !first.Is('0') {
+		result += string(first.Rune)
+	}
+
+	for {
+		c := l.PeekChar()
+		if !runes.IsOctal(c.Rune) {
+			break
+		}
+
+		result += string(c.Rune)
+		l.EatChar()
+	}
+
+	return tokens.NewToken(tokens.UNKNOWN, result, first.Line, first.Column)
+}
+
+// Consumes all the characters that composes a binary number. Considering `0b`
+// or `0B` as optional prefix.
+func (l *BaseLexer) EatBinary() tokens.Token {
+	result := ""
+
+	first := l.EatChar()
+	next := l.PeekChar()
+	if first.Is('0') && (next.Is('b') || next.Is('B')) {
+		l.EatChar()
+	} else {
+		result += string(first.Rune)
+	}
+
+	for {
+		c := l.PeekChar()
+		if !runes.IsBinary(c.Rune) {
+			break
+		}
+
+		result += string(c.Rune)
+		l.EatChar()
+	}
+
+	return tokens.NewToken(tokens.UNKNOWN, result, first.Line, first.Column)
+}
+
+// Consumes all the characters that composes a whitespace. Including space,
+// tab, newline and carriage return.
+func (l *BaseLexer) EatWhiteSpaces() tokens.Token {
+	result := ""
+
+	first := l.PeekChar()
+	for {
+		c := l.PeekChar()
+		if !runes.IsWhiteSpace(c.Rune) {
+			break
+		}
+
+		result += string(c.Rune)
+		l.EatChar()
+	}
+
+	return tokens.NewToken(tokens.UNKNOWN, result, first.Line, first.Column)
+}
+
+// Consumes all the characters that composes a space. Including space, tab and
+// carriage return.
+func (l *BaseLexer) EatSpaces() tokens.Token {
+	result := ""
+
+	first := l.PeekChar()
+	for {
+		c := l.PeekChar()
+		if !runes.IsWhiteSpace(c.Rune) {
+			break
+		}
+
+		result += string(c.Rune)
+		l.EatChar()
+	}
+
+	return tokens.NewToken(tokens.UNKNOWN, result, first.Line, first.Column)
+}
+
+// Consumes all the characters that composes a newline. Including only the
+// newline character (without the carriage return).
+func (l *BaseLexer) EatNewlines() tokens.Token {
+	result := ""
+
+	first := l.PeekChar()
+	for {
+		c := l.PeekChar()
+		if !c.Is('\n') {
+			break
+		}
+
+		result += string(c.Rune)
+		l.EatChar()
+	}
+
+	return tokens.NewToken(tokens.UNKNOWN, result, first.Line, first.Column)
+}
+
+// Consumes all the characters that composes an common identifier. Including
+// letters, digits and underscores.
+func (l *BaseLexer) EatIdentifier() tokens.Token {
+	result := ""
+
+	first := l.PeekChar()
+	for {
+		c := l.PeekChar()
+		if !runes.IsAlphaNumeric(c.Rune) && !c.Is('_') {
+			break
+		}
+
+		result += string(c.Rune)
+		l.EatChar()
+	}
+
+	return tokens.NewToken(tokens.UNKNOWN, result, first.Line, first.Column)
+}
+
+// Consumes all the characters that composes a word. Including letters and
+// digits.
+func (l *BaseLexer) EatWord() tokens.Token {
+	result := ""
+
+	first := l.PeekChar()
+	for {
+		c := l.PeekChar()
+		if !runes.IsAlphaNumeric(c.Rune) {
+			break
+		}
+
+		result += string(c.Rune)
+		l.EatChar()
+	}
+
+	return tokens.NewToken(tokens.UNKNOWN, result, first.Line, first.Column)
+}
+
+// Consumes all the characters until the end of the line or the end of file.
+func (l *BaseLexer) EatUntilEndOfLine() tokens.Token {
+	result := ""
+
+	first := l.PeekChar()
+	for {
+		c := l.PeekChar()
+		if c.IsOneOf('\n', 0) {
+			break
+		}
+
+		result += string(c.Rune)
+		l.EatChar()
+	}
+
+	return tokens.NewToken(tokens.UNKNOWN, result, first.Line, first.Column)
 }

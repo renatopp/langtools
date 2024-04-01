@@ -39,15 +39,15 @@ func TestIsLetter(t *testing.T) {
 }
 
 func TestIsWhitespace(t *testing.T) {
-	assert.True(t, runes.IsWhitespace(' '))
-	assert.True(t, runes.IsWhitespace('\t'))
-	assert.True(t, runes.IsWhitespace('\n'))
-	assert.True(t, runes.IsWhitespace('\r'))
-	assert.False(t, runes.IsWhitespace('a'))
-	assert.False(t, runes.IsWhitespace('A'))
-	assert.False(t, runes.IsWhitespace('0'))
-	assert.False(t, runes.IsWhitespace('9'))
-	assert.False(t, runes.IsWhitespace(';'))
+	assert.True(t, runes.IsWhiteSpace(' '))
+	assert.True(t, runes.IsWhiteSpace('\t'))
+	assert.True(t, runes.IsWhiteSpace('\n'))
+	assert.True(t, runes.IsWhiteSpace('\r'))
+	assert.False(t, runes.IsWhiteSpace('a'))
+	assert.False(t, runes.IsWhiteSpace('A'))
+	assert.False(t, runes.IsWhiteSpace('0'))
+	assert.False(t, runes.IsWhiteSpace('9'))
+	assert.False(t, runes.IsWhiteSpace(';'))
 }
 
 func TestIsEof(t *testing.T) {

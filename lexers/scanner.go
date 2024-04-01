@@ -4,7 +4,7 @@ import (
 	"errors"
 	"unicode/utf8"
 
-	"github.com/renatopp/langtools/token"
+	"github.com/renatopp/langtools/tokens"
 )
 
 type Scanner struct {
@@ -30,19 +30,19 @@ func (l *Scanner) IsEof() bool {
 
 // Returns the next valid token from the input. If the input is empty, or the
 // Scanner has too many errors, or the file ended it returns an empty char.
-func (l *Scanner) Next() (token.Char, error) {
+func (l *Scanner) Next() (tokens.Char, error) {
 	if l.cursor >= len(l.input) {
-		return token.NewChar(l.line, l.column, 0, 0), nil
+		return tokens.NewChar(l.line, l.column, 0, 0), nil
 	}
 
 	r, size := utf8.DecodeRune(l.input[l.cursor:])
 	if r == utf8.RuneError {
 		l.cursor += size
 		l.column++
-		return token.NewChar(l.line, l.column, 0, 0), errors.New(ErrInvalidChar)
+		return tokens.NewChar(l.line, l.column, 0, 0), errors.New(ErrInvalidChar)
 	}
 
-	c := token.NewChar(l.line, l.column, size, r)
+	c := tokens.NewChar(l.line, l.column, size, r)
 	l.cursor += size
 	l.column++
 	if c.Is('\n') {

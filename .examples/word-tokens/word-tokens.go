@@ -4,8 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/renatopp/langtools"
-	"github.com/renatopp/langtools/tokenizers"
+	"github.com/renatopp/langtools/lexers"
 )
 
 func main() {
@@ -14,9 +13,16 @@ func main() {
 		panic(err)
 	}
 
-	lexer := langtools.NewLexer(input, tokenizers.Word)
-	for i, token := range lexer.Iter() {
+	lexer := lexers.NewBaseLexer(input, lexers.WordTokenizer)
+	i := 0
+	for {
+		token, eof := lexer.Next()
+		if eof {
+			break
+		}
+
 		fmt.Printf("[%03d] %d:%d (%s) %s\n", i, token.Line, token.Column, token.Type, token.Literal)
+		i++
 	}
 
 	if lexer.HasErrors() {

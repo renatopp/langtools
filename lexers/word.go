@@ -2,18 +2,12 @@ package lexers
 
 import (
 	"github.com/renatopp/langtools/runes"
-	"github.com/renatopp/langtools/token"
-)
-
-const (
-	TWord        = "word"
-	TNumber      = "number"
-	TPunctuation = "punctuation"
+	"github.com/renatopp/langtools/tokens"
 )
 
 // Simple word tokenizer. It ignore whitespaces, group punctuation, and return
 // words and numbers.
-func Word(l *GenericLexer) token.Token {
+func WordTokenizer(l *BaseLexer) tokens.Token {
 	for {
 		if l.HasTooManyErrors() {
 			break
@@ -22,33 +16,32 @@ func Word(l *GenericLexer) token.Token {
 		c := l.PeekChar()
 		switch {
 		case c.Is(0):
-			return token.NewToken(token.TEof, "", c.Line, c.Column)
+			return tokens.NewEofTokenAtChar(c)
 
-		case runes.IsWhitespace(c.Rune):
-			EatWhitespaces(l, token.TString)
+		case runes.IsWhiteSpace(c.Rune):
+			l.EatWhiteSpaces()
 
 		case runes.IsLetter(c.Rune):
-			return EatWord(l, TWord)
+			return l.EatWord().As("word")
 
 		case runes.IsDigit(c.Rune):
-			return EatNumber(l, TNumber)
+			return l.EatNumber().As("number")
 
 		default:
-			return eatPunctuation(l, TPunctuation)
-
+			return eatPunctuation(l).As("punctuation")
 		}
 	}
 
-	return token.Token{}
+	return tokens.NewEofToken()
 }
 
-func eatPunctuation(l *GenericLexer, tp token.TokenType) token.Token {
+func eatPunctuation(l *BaseLexer) tokens.Token {
 	result := ""
 
 	first := l.PeekChar()
 	for {
 		c := l.PeekChar()
-		if runes.IsAlphaNumeric(c.Rune) || runes.IsWhitespace(c.Rune) || c.Is(0) {
+		if runes.IsAlphaNumeric(c.Rune) || runes.IsWhiteSpace(c.Rune) || c.Is(0) {
 			break
 		}
 
@@ -56,5 +49,5 @@ func eatPunctuation(l *GenericLexer, tp token.TokenType) token.Token {
 		l.EatChar()
 	}
 
-	return token.NewToken(tp, result, first.Line, first.Column)
+	return tokens.NewTokenAtChar(tokens.UNKNOWN, result, first)
 }

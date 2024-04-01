@@ -4,9 +4,14 @@ import (
 	"github.com/renatopp/langtools/lexers"
 )
 
+type Parser interface {
+	Errors() []ParserError
+	HasErrors() bool
+}
+
 type BaseParser struct {
 	MaxErrors int
-	lexer     lexers.Lexer
+	Lexer     lexers.Lexer
 	errors    []ParserError
 }
 
@@ -14,7 +19,7 @@ type BaseParser struct {
 func NewBaseParser(lexer lexers.Lexer) *BaseParser {
 	return &BaseParser{
 		MaxErrors: 10,
-		lexer:     lexer,
+		Lexer:     lexer,
 		errors:    make([]ParserError, 0),
 	}
 }
