@@ -18,8 +18,8 @@ func WordTokenizer(l *BaseLexer) tokens.Token {
 		case c.Is(0):
 			return tokens.NewEofTokenAtChar(c)
 
-		case runes.IsWhiteSpace(c.Rune):
-			l.EatWhiteSpaces()
+		case runes.IsWhitespace(c.Rune):
+			l.EatWhitespaces()
 
 		case runes.IsLetter(c.Rune):
 			return l.EatWord().As("word")
@@ -41,7 +41,7 @@ func eatPunctuation(l *BaseLexer) tokens.Token {
 	first := l.PeekChar()
 	for {
 		c := l.PeekChar()
-		if runes.IsAlphaNumeric(c.Rune) || runes.IsWhiteSpace(c.Rune) || c.Is(0) {
+		if runes.IsAlphaNumeric(c.Rune) || runes.IsWhitespace(c.Rune) || c.Is(0) {
 			break
 		}
 

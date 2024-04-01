@@ -2,6 +2,7 @@ package parsers
 
 import (
 	"github.com/renatopp/langtools/asts"
+	"github.com/renatopp/langtools/lexers"
 	"github.com/renatopp/langtools/tokens"
 )
 
@@ -13,7 +14,7 @@ type PrattInfixFn func(left asts.Node) asts.Node
 type PrattPostfixFn func() asts.Node
 
 type PrattParser struct {
-	CurTokenFn   PrattCurTokenFn
+	*BaseParser
 	IsEndOfExpr  PrattIsEndOfExprFn
 	PrecedenceFn PrattPrecedenceFn
 	prefixFns    map[tokens.TokenType]PrattPrefixFn
@@ -23,9 +24,9 @@ type PrattParser struct {
 
 type PrattParserOption func(*PrattParser)
 
-func NewPrattParser(options ...PrattParserOption) *PrattParser {
+func NewPrattParser(lexer lexers.Lexer, options ...PrattParserOption) *PrattParser {
 	parser := &PrattParser{
-		CurTokenFn:   func() tokens.Token { return tokens.Token{} },
+		BaseParser:   NewBaseParser(lexer),
 		IsEndOfExpr:  func(tokens.Token) bool { return false },
 		PrecedenceFn: func(tokens.Token) int { return 0 },
 		prefixFns:    make(map[tokens.TokenType]PrattPrefixFn),
@@ -53,19 +54,19 @@ func (p *PrattParser) RegisterPostfixFn(tokenType tokens.TokenType, fn PrattPost
 }
 
 func (p *PrattParser) ParseExpression(precedence int) asts.Node {
-	postfix := p.postfixFns[p.CurTokenFn().Type]
+	postfix := p.postfixFns[p.Lexer.PeekToken().Type]
 	if postfix != nil {
 		return postfix()
 	}
 
-	prefix := p.prefixFns[p.CurTokenFn().Type]
+	prefix := p.prefixFns[p.Lexer.PeekToken().Type]
 	if prefix == nil {
 		return nil
 	}
 
 	left := prefix()
 
-	c := p.CurTokenFn()
+	c := p.Lexer.PeekToken()
 	for !p.IsEndOfExpr(c) && precedence < p.PrecedenceFn(c) {
 		infix := p.infixFns[c.Type]
 		if infix == nil {
@@ -73,7 +74,7 @@ func (p *PrattParser) ParseExpression(precedence int) asts.Node {
 		}
 
 		left = infix(left)
-		c = p.CurTokenFn()
+		c = p.Lexer.PeekToken()
 	}
 
 	return left

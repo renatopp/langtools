@@ -59,18 +59,15 @@ func (l *MathematicalLexer) tokenizer() tokens.Token {
 }
 
 type MathematicalParser struct {
-	*parsers.BaseParser
-	pratt *parsers.PrattParser
+	*parsers.PrattParser
 }
 
 func NewMathematicalParser(lexer *MathematicalLexer) *MathematicalParser {
 	p := &MathematicalParser{}
-	p.BaseParser = parsers.NewBaseParser(lexer)
-	p.pratt = parsers.NewPrattParser()
-	p.pratt.CurTokenFn = func() tokens.Token { return p.Lexer.PeekToken() }
-	p.pratt.IsEndOfExpr = func(t tokens.Token) bool { return t.IsOneOfType(tokens.EOF, "eoe") }
-	p.pratt.PrecedenceFn = func(t tokens.Token) int { return p.precedence(t) }
-	p.pratt.RegisterPrefixFn("number", p.prefixNumber)
+	p.PrattParser = parsers.NewPrattParser(lexer)
+	p.IsEndOfExpr = func(t tokens.Token) bool { return t.IsOneOfType(tokens.EOF, "eoe") }
+	p.PrecedenceFn = func(t tokens.Token) int { return p.precedence(t) }
+	p.RegisterPrefixFn("number", p.prefixNumber)
 	return p
 }
 
@@ -106,7 +103,7 @@ func main() {
 	{
 		lexer := NewMathematicalLexer(input)
 		parser := NewMathematicalParser(lexer)
-		node := parser.pratt.ParseExpression(-1)
+		node := parser.ParseExpression(-1)
 
 		println(node)
 		node.Traverse(0, func(i int, n asts.Node) {

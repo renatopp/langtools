@@ -22,7 +22,7 @@ func IsLetter(r rune) bool {
 var IsAlpha = IsLetter
 
 // Check if a rune is a whitespace (space, tab, newline or carriage return)
-func IsWhiteSpace(r rune) bool {
+func IsWhitespace(r rune) bool {
 	return r == ' ' || r == '\t' || r == '\n' || r == '\r'
 }
 

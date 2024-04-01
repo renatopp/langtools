@@ -34,6 +34,16 @@ func NewEofTokenAtChar(char Char) Token {
 }
 
 // Returns true if the token is of the given type.
+func (t *Token) IsType(ty TokenType) bool {
+	return t.Type == ty
+}
+
+// Returns true if the token is the given literal.
+func (t *Token) IsLiteral(lit string) bool {
+	return t.Literal == lit
+}
+
+// Returns true if the token is of the given type.
 func (t *Token) IsOneOfType(tys ...TokenType) bool {
 	return slices.Contains(tys, t.Type)
 }

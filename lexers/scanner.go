@@ -7,6 +7,8 @@ import (
 	"github.com/renatopp/langtools/tokens"
 )
 
+// Scanner is responsible for reading the byte slice input and returning the
+// sequence of characters in that input.
 type Scanner struct {
 	input  []byte
 	cursor int
@@ -14,6 +16,7 @@ type Scanner struct {
 	column int
 }
 
+// Creates a new scanner attached to the given input.
 func NewScanner(input []byte) *Scanner {
 	return &Scanner{
 		input:  input,
@@ -24,30 +27,50 @@ func NewScanner(input []byte) *Scanner {
 }
 
 // Returns true if the cursor is at the end of the input.
-func (l *Scanner) IsEof() bool {
-	return l.cursor >= len(l.input)
+func (s *Scanner) IsEof() bool {
+	return s.cursor >= len(s.input)
 }
 
-// Returns the next valid token from the input. If the input is empty, or the
-// Scanner has too many errors, or the file ended it returns an empty char.
-func (l *Scanner) Next() (tokens.Char, error) {
-	if l.cursor >= len(l.input) {
-		return tokens.NewChar(l.line, l.column, 0, 0), nil
+// Returns the next character from the input.
+func (s *Scanner) Next() (tokens.Char, error) {
+	if s.cursor >= len(s.input) {
+		return tokens.NewChar(s.line, s.column, 0, 0), nil
 	}
 
-	r, size := utf8.DecodeRune(l.input[l.cursor:])
+	r, size := utf8.DecodeRune(s.input[s.cursor:])
 	if r == utf8.RuneError {
-		l.cursor += size
-		l.column++
-		return tokens.NewChar(l.line, l.column, 0, 0), errors.New(ErrInvalidChar)
+		s.cursor += size
+		s.column++
+		return tokens.NewChar(s.line, s.column, 0, 0), errors.New(ErrInvalidChar)
 	}
 
-	c := tokens.NewChar(l.line, l.column, size, r)
-	l.cursor += size
-	l.column++
+	c := tokens.NewChar(s.line, s.column, size, r)
+	s.cursor += size
+	s.column++
 	if c.Is('\n') {
-		l.line++
-		l.column = 1
+		s.line++
+		s.column = 1
 	}
 	return c, nil
+}
+
+// Returns all characters from the input. If an error occurs, it will be
+// returned instead of the slice.
+func (s *Scanner) All() ([]tokens.Char, error) {
+	var chars []tokens.Char
+	for !s.IsEof() {
+		c, err := s.Next()
+		if err != nil {
+			return nil, err
+		}
+		chars = append(chars, c)
+	}
+	return chars, nil
+}
+
+// Resets the scanner to the initial state.
+func (s *Scanner) Reset() {
+	s.cursor = 0
+	s.line = 1
+	s.column = 1
 }
