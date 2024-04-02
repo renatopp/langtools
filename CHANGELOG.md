@@ -2,6 +2,10 @@
 
 <!-- NEWER -->
 
+## v0.1.2 (2024-04-02)
+
+- Adding error interface
+
 ## v0.1.1 (2024-04-02)
 
 - Adding PrevToken() to BaseLexer.
