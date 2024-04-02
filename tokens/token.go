@@ -34,33 +34,27 @@ func NewEofTokenAtChar(char Char) Token {
 }
 
 // Returns true if the token is of the given type.
-func (t *Token) IsType(ty TokenType) bool {
+func (t Token) IsType(ty TokenType) bool {
 	return t.Type == ty
 }
 
 // Returns true if the token is the given literal.
-func (t *Token) IsLiteral(lit string) bool {
+func (t Token) IsLiteral(lit string) bool {
 	return t.Literal == lit
 }
 
 // Returns true if the token is of the given type.
-func (t *Token) IsOneOfType(tys ...TokenType) bool {
+func (t Token) IsOneOfType(tys ...TokenType) bool {
 	return slices.Contains(tys, t.Type)
 }
 
 // Returns true if the token is one of the given literals.
-func (t *Token) IsOneOfLiterals(lits ...string) bool {
+func (t Token) IsOneOfLiterals(lits ...string) bool {
 	return slices.Contains(lits, t.Literal)
 }
 
-// Set the position of the token.
-func (t *Token) SetPosition(line, column int) {
-	t.Line = line
-	t.Column = column
-}
-
 // Returns the position of the token.
-func (t *Token) At() (line, column int) {
+func (t Token) At() (line, column int) {
 	return t.Line, t.Column
 }
 

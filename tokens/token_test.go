@@ -49,12 +49,6 @@ func TestTokenIsOneOfLiterals(t *testing.T) {
 	assert.True(t, token.IsOneOfLiterals("sample", "renato"))
 }
 
-func TestSetPosition(t *testing.T) {
-	token := tokens.NewToken(tokens.EOF, "", 1, 2)
-	token.SetPosition(3, 4)
-	assert.Equal(t, tokens.Token{tokens.EOF, "", 3, 4}, token)
-}
-
 func TestAt(t *testing.T) {
 	token := tokens.NewToken(tokens.EOF, "", 1, 2)
 	line, column := token.At()

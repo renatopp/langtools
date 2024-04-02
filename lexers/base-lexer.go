@@ -12,6 +12,7 @@ type BaseLexer struct {
 	TokenizerFn func(*BaseLexer) tokens.Token
 
 	scanner    *Scanner
+	prevToken  tokens.Token
 	nextTokens []tokens.Token
 	nextChars  []tokens.Char
 	errors     []LexerError
@@ -43,6 +44,7 @@ func NewBaseLexer(input []byte, tokenizerFn TokenizerFn) *BaseLexer {
 		MaxErrors:   10,
 		TokenizerFn: tokenizerFn,
 		scanner:     NewScanner(input),
+		prevToken:   tokens.NewToken(tokens.UNKNOWN, "", 0, 0),
 		nextTokens:  make([]tokens.Token, 0),
 		nextChars:   make([]tokens.Char, 0),
 		errors:      make([]LexerError, 0),
@@ -99,7 +101,7 @@ func (l *BaseLexer) Iter() func(func(int, tokens.Token) bool) {
 				return
 			}
 
-			if len(l.nextTokens) <= 0 && l.IsEof() {
+			if t.IsType(tokens.EOF) {
 				return
 			}
 		}
@@ -119,7 +121,8 @@ func (l *BaseLexer) Iter() func(func(int, tokens.Token) bool) {
 //		// Do something with t
 //	}
 func (l *BaseLexer) Next() (token tokens.Token, eof bool) {
-	a, b := l.EatToken(), l.IsEof()
+	a := l.EatToken()
+	b := a.IsType(tokens.EOF)
 	return a, b
 }
 
@@ -143,11 +146,18 @@ func (l *BaseLexer) All() []tokens.Token {
 // token.
 func (l *BaseLexer) EatToken() tokens.Token {
 	t := l.PeekToken()
+	l.prevToken = t
 	if len(l.nextTokens) > 0 {
 		l.nextTokens = l.nextTokens[1:]
 	}
 
 	return t
+}
+
+// Reads the previous token from the input. The cursor is not moved, so it can be
+// called multiple times without consuming the input.
+func (l *BaseLexer) PrevToken() tokens.Token {
+	return l.prevToken
 }
 
 // Reads the current token from the input. The cursor is not moved, so it can be

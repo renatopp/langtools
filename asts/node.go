@@ -6,5 +6,4 @@ type Node interface {
 	GetToken() tokens.Token
 	String() string
 	Children() []Node
-	Traverse(int, func(int, Node))
 }

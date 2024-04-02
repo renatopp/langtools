@@ -21,16 +21,16 @@ func NewChar(line, column, size int, rune rune) Char {
 }
 
 // Returns the line and column of the character.
-func (p *Char) At() (line, column int) {
+func (p Char) At() (line, column int) {
 	return p.Line, p.Column
 }
 
 // Checks if the character rune matches the given rune.
-func (p *Char) Is(r rune) bool {
+func (p Char) Is(r rune) bool {
 	return p.Rune == r
 }
 
 // Checks if the character rune is one of the given runes.
-func (p *Char) IsOneOf(runes ...rune) bool {
+func (p Char) IsOneOf(runes ...rune) bool {
 	return slices.Contains(runes, p.Rune)
 }
