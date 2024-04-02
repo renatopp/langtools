@@ -2,6 +2,14 @@
 
 <!-- NEWER -->
 
+## v0.1.1 (2024-04-02)
+
+- Adding PrevToken() to BaseLexer.
+- No * methods in Token and Char.
+- Removing Traverse from asts.Node interface.
+- Removing BaseNode from asts.
+- Adding Traverse function to ast package.
+
 ## v0.1.0 (2024-04-01)
 
 - Breaking refactor for organization
