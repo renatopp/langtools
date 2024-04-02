@@ -22,10 +22,10 @@ func NewLexerError(line, column int, msg string) LexerError {
 	}
 }
 
-func (e *LexerError) Error() string {
+func (e LexerError) Error() string {
 	return e.Msg
 }
 
-func (e *LexerError) At() (int, int) {
+func (e LexerError) At() (int, int) {
 	return e.Line, e.Column
 }
