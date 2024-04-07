@@ -42,7 +42,7 @@ func IsAlphaNumeric(r rune) bool {
 }
 
 // Check if a rune is any of the runes in the given slice
-func IsAnyOf(r rune, runes []rune) bool {
+func IsOneOf(r rune, runes []rune) bool {
 	return slices.Contains(runes, r)
 }
 

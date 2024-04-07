@@ -6,9 +6,9 @@ import (
 	"github.com/renatopp/langtools/tokens"
 )
 
-type PrattCurTokenFn func() tokens.Token
-type PrattIsEndOfExprFn func(tokens.Token) bool
-type PrattPrecedenceFn func(tokens.Token) int
+type PrattCurTokenFn func() *tokens.Token
+type PrattIsEndOfExprFn func(*tokens.Token) bool
+type PrattPrecedenceFn func(*tokens.Token) int
 type PrattPrefixFn func() asts.Node
 type PrattInfixFn func(left asts.Node) asts.Node
 type PrattPostfixFn func() asts.Node
@@ -27,8 +27,8 @@ type PrattParserOption func(*PrattParser)
 func NewPrattParser(lexer lexers.Lexer, options ...PrattParserOption) *PrattParser {
 	parser := &PrattParser{
 		BaseParser:   NewBaseParser(lexer),
-		IsEndOfExpr:  func(tokens.Token) bool { return false },
-		PrecedenceFn: func(tokens.Token) int { return 0 },
+		IsEndOfExpr:  func(*tokens.Token) bool { return false },
+		PrecedenceFn: func(*tokens.Token) int { return 0 },
 		prefixFns:    make(map[tokens.TokenType]PrattPrefixFn),
 		infixFns:     make(map[tokens.TokenType]PrattInfixFn),
 		postfixFns:   make(map[tokens.TokenType]PrattPostfixFn),

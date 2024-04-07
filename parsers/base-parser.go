@@ -40,18 +40,12 @@ func (p *BaseParser) HasTooManyErrors() bool {
 
 // Register an error with the given message.
 func (p *BaseParser) RegisterError(msg string) {
-	p.errors = append(p.errors, ParserError{
-		Token: p.Lexer.PeekToken(),
-		Msg:   msg,
-	})
+	p.errors = append(p.errors, NewParserError(p.Lexer.PeekToken(), msg))
 }
 
 // Register an error with the given message and token.
-func (p *BaseParser) RegisterErrorWithToken(msg string, token tokens.Token) {
-	p.errors = append(p.errors, ParserError{
-		Token: token,
-		Msg:   msg,
-	})
+func (p *BaseParser) RegisterErrorWithToken(msg string, token *tokens.Token) {
+	p.errors = append(p.errors, NewParserError(token, msg))
 }
 
 // Checks if the next token is the given types.

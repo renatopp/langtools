@@ -7,7 +7,7 @@ import (
 
 // Simple word tokenizer. It ignore whitespaces, group punctuation, and return
 // words and numbers.
-func WordTokenizer(l *BaseLexer) tokens.Token {
+func WordTokenizer(l *BaseLexer) *tokens.Token {
 	for {
 		if l.HasTooManyErrors() {
 			break
@@ -16,26 +16,27 @@ func WordTokenizer(l *BaseLexer) tokens.Token {
 		c := l.PeekChar()
 		switch {
 		case c.Is(0):
-			return tokens.NewEofTokenAtChar(c)
+			return tokens.NewToken(tokens.EOF, "").WithRangeChars(c, c)
 
 		case runes.IsWhitespace(c.Rune):
 			l.EatWhitespaces()
 
 		case runes.IsLetter(c.Rune):
-			return l.EatWord().As("word")
+			return l.EatWord().WithType("word")
 
 		case runes.IsDigit(c.Rune):
-			return l.EatNumber().As("number")
+			return l.EatNumber().WithType("number")
 
 		default:
-			return eatPunctuation(l).As("punctuation")
+			return eatPunctuation(l).WithType("punctuation")
 		}
 	}
 
-	return tokens.NewEofToken()
+	c := l.PeekChar()
+	return tokens.NewToken(tokens.EOF, "").WithRangeChars(c, c)
 }
 
-func eatPunctuation(l *BaseLexer) tokens.Token {
+func eatPunctuation(l *BaseLexer) *tokens.Token {
 	result := ""
 
 	first := l.PeekChar()
@@ -49,5 +50,5 @@ func eatPunctuation(l *BaseLexer) tokens.Token {
 		l.EatChar()
 	}
 
-	return tokens.NewTokenAtChar(tokens.UNKNOWN, result, first)
+	return tokens.NewToken(tokens.UNKNOWN, result).WithRangeChars(first, l.PeekChar())
 }

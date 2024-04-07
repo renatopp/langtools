@@ -59,12 +59,12 @@ func TestReadCharsWithError(t *testing.T) {
 }
 
 func TestReadTokens(t *testing.T) {
-	lexer := lexers.NewBaseLexer(helloInput, func(l *lexers.BaseLexer) tokens.Token {
+	lexer := lexers.NewBaseLexer(helloInput, func(l *lexers.BaseLexer) *tokens.Token {
 		c := l.EatChar()
 		if c.Is(0) {
-			return tokens.NewToken(tokens.EOF, "", c.Line, c.Column)
+			return tokens.NewToken(tokens.EOF, "").WithRangeChars(c, l.PeekChar())
 		}
-		return tokens.NewToken(tokens.UNKNOWN, string(c.Rune), c.Line, c.Column)
+		return tokens.NewToken(tokens.UNKNOWN, string(c.Rune)).WithRangeChars(c, l.PeekChar())
 	})
 
 	assert.Equal(t, string(helloOutput[0]), lexer.PeekToken().Literal)
@@ -73,23 +73,24 @@ func TestReadTokens(t *testing.T) {
 
 	for i, r := range helloOutput {
 		tk := lexer.EatToken()
-		assert.Equal(t, 1, tk.Line)
-		assert.Equal(t, i+1, tk.Column)
+		assert.Equal(t, 1, tk.FromLine)
+		assert.Equal(t, i+1, tk.FromColumn)
 		assert.Equal(t, string(r), tk.Literal)
 		assert.Equal(t, tokens.TokenType(tokens.UNKNOWN), tk.Type)
 	}
 
-	println(lexer.EatToken().Type, lexer.EatToken().Literal, lexer.EatToken().Column)
-	println(lexer.EatToken().Type, lexer.EatToken().Literal, lexer.EatToken().Column)
 	assert.Equal(t, tokens.EOF, lexer.EatToken().Type)
 	assert.Equal(t, tokens.EOF, lexer.EatToken().Type)
 	assert.Equal(t, tokens.EOF, lexer.EatToken().Type)
 }
 
 func TestNext(t *testing.T) {
-	lexer := lexers.NewBaseLexer(helloInput, func(l *lexers.BaseLexer) tokens.Token {
+	lexer := lexers.NewBaseLexer(helloInput, func(l *lexers.BaseLexer) *tokens.Token {
 		c := l.EatChar()
-		return tokens.NewToken(tokens.UNKNOWN, string(c.Rune), c.Line, c.Column)
+		if c.Is(0) {
+			return tokens.NewToken(tokens.EOF, "").WithRangeChars(c, l.PeekChar())
+		}
+		return tokens.NewToken(tokens.UNKNOWN, string(c.Rune)).WithRangeChars(c, l.PeekChar())
 	})
 
 	i := 0
@@ -98,6 +99,7 @@ func TestNext(t *testing.T) {
 		if eof {
 			break
 		}
+
 		assert.Equal(t, string(helloOutput[i]), tk.Literal)
 		i++
 	}

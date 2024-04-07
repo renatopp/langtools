@@ -69,12 +69,12 @@ func TestIsAlphaNumeric(t *testing.T) {
 }
 
 func TestIsAnyOf(t *testing.T) {
-	assert.True(t, runes.IsAnyOf('a', []rune{'a', 'b', 'c'}))
-	assert.True(t, runes.IsAnyOf('b', []rune{'a', 'b', 'c'}))
-	assert.True(t, runes.IsAnyOf('c', []rune{'a', 'b', 'c'}))
-	assert.False(t, runes.IsAnyOf('d', []rune{'a', 'b', 'c'}))
-	assert.False(t, runes.IsAnyOf(' ', []rune{'a', 'b', 'c'}))
-	assert.False(t, runes.IsAnyOf(';', []rune{'a', 'b', 'c'}))
+	assert.True(t, runes.IsOneOf('a', []rune{'a', 'b', 'c'}))
+	assert.True(t, runes.IsOneOf('b', []rune{'a', 'b', 'c'}))
+	assert.True(t, runes.IsOneOf('c', []rune{'a', 'b', 'c'}))
+	assert.False(t, runes.IsOneOf('d', []rune{'a', 'b', 'c'}))
+	assert.False(t, runes.IsOneOf(' ', []rune{'a', 'b', 'c'}))
+	assert.False(t, runes.IsOneOf(';', []rune{'a', 'b', 'c'}))
 }
 
 func TestIsHexadecimal(t *testing.T) {

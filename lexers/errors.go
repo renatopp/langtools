@@ -29,3 +29,7 @@ func (e LexerError) Error() string {
 func (e LexerError) At() (int, int) {
 	return e.Line, e.Column
 }
+
+func (e LexerError) Range() (int, int) {
+	return e.Column, e.Column + 1
+}
