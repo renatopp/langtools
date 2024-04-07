@@ -3,7 +3,7 @@ package asts
 import "github.com/renatopp/langtools/tokens"
 
 type Node interface {
-	GetToken() tokens.Token
+	GetToken() *tokens.Token
 	String() string
 	Children() []Node
 }

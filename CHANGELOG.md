@@ -2,6 +2,10 @@
 
 <!-- NEWER -->
 
+## v0.2.6 (2024-04-07)
+
+- Changing ast.Node interface to use token pointer
+
 ## v0.2.5 (2024-04-07)
 
 - Improving debug string in tokens
