@@ -459,7 +459,10 @@ func (l *BaseLexer) EatOctal() *tokens.Token {
 	result := ""
 
 	first := l.EatChar()
-	if !first.Is('0') {
+	next := l.PeekChar()
+	if first.Is('0') && (next.Is('o') || next.Is('O')) {
+		l.EatChar()
+	} else if !first.Is('0') {
 		result += string(first.Rune)
 	}
 

@@ -146,8 +146,8 @@ func TestHexadecimal(t *testing.T) {
 func TestOctal(t *testing.T) {
 	input := [][]byte{
 		[]byte(`0770`),
-		[]byte(`0012`),
-		[]byte(`0120`),
+		[]byte(`0o012`),
+		[]byte(`0O120`),
 		[]byte(`123`),
 		[]byte(`189`),
 	}
