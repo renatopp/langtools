@@ -26,10 +26,10 @@ func (e LexerError) Error() string {
 	return e.Msg
 }
 
-func (e LexerError) At() (int, int) {
+func (e LexerError) At() (line, column int) {
 	return e.Line, e.Column
 }
 
-func (e LexerError) Range() (int, int) {
-	return e.Column, e.Column + 1
+func (e LexerError) Range() (fromLine, fromColumn, toLine, toColumn int) {
+	return e.Line, e.Column, e.Line, e.Column + 1
 }
