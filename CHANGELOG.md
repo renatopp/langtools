@@ -2,6 +2,13 @@
 
 <!-- NEWER -->
 
+## v0.2.0 (2024-04-07)
+
+- Tokens now save the complete range (fromLine, fromColumn, toLine, toColumn)
+- Complete refactor on Token to adapt these information
+- Tokens now are used as pointers
+- Adding utility functions to handle errors messages
+
 ## v0.1.2 (2024-04-02)
 
 - Adding error interface
