@@ -366,7 +366,12 @@ func (l *BaseLexer) EatNumber() *tokens.Token {
 	for {
 		c := l.PeekChar()
 
-		if c.Is('.') {
+		switch {
+		case c.Is('_'):
+			l.EatChar()
+			continue
+
+		case c.Is('.'):
 			if dot || exp {
 				l.RegisterError(ErrUnexpectedDot)
 				l.EatChar()
@@ -376,7 +381,7 @@ func (l *BaseLexer) EatNumber() *tokens.Token {
 			dot = true
 			result += string(c.Rune)
 
-		} else if c.Is('e') || c.Is('E') {
+		case c.Is('e') || c.Is('E'):
 			if exp {
 				l.RegisterError(ErrUnexpectedE)
 				l.EatChar()
@@ -392,17 +397,16 @@ func (l *BaseLexer) EatNumber() *tokens.Token {
 				result += string(next.Rune)
 			}
 
-		} else if runes.IsDigit(c.Rune) {
+		case runes.IsDigit(c.Rune):
 			result += string(c.Rune)
 
-		} else {
-			break
+		default:
+			return tokens.NewToken(tokens.UNKNOWN, result).WithRangeChars(first, l.PeekChar())
 		}
 
 		l.EatChar()
 	}
 
-	return tokens.NewToken(tokens.UNKNOWN, result).WithRangeChars(first, l.PeekChar())
 }
 
 // Consumes all the characters that composes an integer number.

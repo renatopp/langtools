@@ -75,6 +75,7 @@ func TestRawStringError(t *testing.T) {
 func TestNumber(t *testing.T) {
 	input := [][]byte{
 		[]byte(`123!`),
+		[]byte(`1_000_000`),
 		[]byte(`123.456]`),
 		[]byte(`123e456,`),
 		[]byte(`123.456e789`),
@@ -84,6 +85,7 @@ func TestNumber(t *testing.T) {
 	}
 	expected := []string{
 		`123`,
+		`1000000`,
 		`123.456`,
 		`123e456`,
 		`123.456e789`,
