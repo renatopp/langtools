@@ -2,6 +2,10 @@
 
 <!-- NEWER -->
 
+## v0.2.2 (2024-04-07)
+
+- Numbers are now eaten with _ character
+
 ## v0.2.1 (2024-04-07)
 
 - Fixing lexer tests
