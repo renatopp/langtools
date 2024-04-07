@@ -12,7 +12,7 @@ import (
 func testValid(t *testing.T, inputs [][]byte, expects []string, eater string) {
 	for i, expected := range expects {
 		l := lexers.NewBaseLexer(inputs[i], nil)
-		token := reflect.ValueOf(l).MethodByName(eater).Call([]reflect.Value{})[0].Interface().(tokens.Token)
+		token := reflect.ValueOf(l).MethodByName(eater).Call([]reflect.Value{})[0].Interface().(*tokens.Token)
 		assert.Equal(t, expected, token.Literal)
 	}
 }

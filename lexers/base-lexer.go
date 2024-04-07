@@ -576,7 +576,7 @@ func (l *BaseLexer) EatIdentifier() *tokens.Token {
 
 // Consumes all the characters that composes an identifier. Including letters,
 // digits and the characters passed as argument.
-func (l *BaseLexer) EatIdentifierWith(allowedChars []rune) *tokens.Token {
+func (l *BaseLexer) EatIdentifierWith(allowedChars ...rune) *tokens.Token {
 	result := ""
 
 	first := l.PeekChar()
