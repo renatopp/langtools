@@ -2,6 +2,10 @@
 
 <!-- NEWER -->
 
+## v0.2.3 (2024-04-07)
+
+- Octal now accepting 0o and 0O formats
+
 ## v0.2.2 (2024-04-07)
 
 - Numbers are now eaten with _ character
