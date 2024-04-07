@@ -3,6 +3,7 @@ package tokens
 import (
 	"fmt"
 	"slices"
+	"strings"
 )
 
 // Represents a token in the source code.
@@ -104,5 +105,6 @@ func (t *Token) Range() (fromLine, fromColumn, toLine, toColumn int) {
 
 // Pretty string representation of the token.
 func (t *Token) DebugString() string {
-	return fmt.Sprintf("[%d:%d] (%s) %s", t.FromLine, t.FromColumn, t.Type, t.Literal)
+	literal := strings.ReplaceAll(t.Literal, "\n", "\\n")
+	return fmt.Sprintf("[%d:%d] (%s) %s", t.FromLine, t.FromColumn, t.Type, literal)
 }

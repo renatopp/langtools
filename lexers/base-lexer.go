@@ -260,13 +260,13 @@ func (l *BaseLexer) EatString() *tokens.Token {
 
 		if c.Is('\n') {
 			// Ignoring newlines
-			l.RegisterError(ErrUnexpectedNewline)
+			l.RegisterErrorAt(ErrUnexpectedNewline, c.Line, c.Column)
 			l.EatChar()
 			continue
 
 		} else if l.IsEof() {
 			// Stopping at EOF
-			l.RegisterError(ErrUnexpectedEndOfFile)
+			l.RegisterErrorAt(ErrUnexpectedEndOfFile, c.Line, c.Column)
 			break
 
 		} else if !escaping && c.Is(first.Rune) {
@@ -316,7 +316,7 @@ func (l *BaseLexer) EatRawString() *tokens.Token {
 
 		if l.IsEof() {
 			// Stopping at EOF
-			l.RegisterError(ErrUnexpectedEndOfFile)
+			l.RegisterErrorAt(ErrUnexpectedEndOfFile, c.Line, c.Column)
 			break
 
 		} else if !escaping && c.Is(first.Rune) {
