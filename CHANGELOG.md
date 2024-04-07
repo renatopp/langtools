@@ -2,6 +2,11 @@
 
 <!-- NEWER -->
 
+## v0.2.1 (2024-04-07)
+
+- Fixing lexer tests
+- BaseLexer.EatIndetifierWith call signature
+
 ## v0.2.0 (2024-04-07)
 
 - Tokens now save the complete range (fromLine, fromColumn, toLine, toColumn)
