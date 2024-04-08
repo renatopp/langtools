@@ -2,6 +2,10 @@
 
 <!-- NEWER -->
 
+## v0.2.7 (2024-04-08)
+
+- Traverse now checks for nil nodes
+
 ## v0.2.6 (2024-04-07)
 
 - Changing ast.Node interface to use token pointer
