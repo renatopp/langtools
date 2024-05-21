@@ -11,7 +11,7 @@ type PrattIsEndOfExprFn func(*tokens.Token) bool
 type PrattPrecedenceFn func(*tokens.Token) int
 type PrattPrefixFn func() asts.Node
 type PrattInfixFn func(left asts.Node) asts.Node
-type PrattPostfixFn func() asts.Node
+type PrattPostfixFn func(left asts.Node) asts.Node
 
 type PrattParser struct {
 	*BaseParser
@@ -54,27 +54,35 @@ func (p *PrattParser) RegisterPostfixFn(tokenType tokens.TokenType, fn PrattPost
 }
 
 func (p *PrattParser) ParseExpression(precedence int) asts.Node {
-	postfix := p.postfixFns[p.Lexer.PeekToken().Type]
-	if postfix != nil {
-		return postfix()
-	}
-
 	prefix := p.prefixFns[p.Lexer.PeekToken().Type]
 	if prefix == nil {
 		return nil
 	}
-
 	left := prefix()
 
-	c := p.Lexer.PeekToken()
-	for !p.IsEndOfExpr(c) && precedence < p.PrecedenceFn(c) {
-		infix := p.infixFns[c.Type]
-		if infix == nil {
-			break
+	cur := p.Lexer.PeekToken()
+	for {
+		if !p.IsEndOfExpr(cur) && precedence < p.PrecedenceFn(cur) {
+			infix := p.infixFns[cur.Type]
+			if infix == nil {
+				break
+			}
+			left = infix(left)
+			cur = p.Lexer.PeekToken()
 		}
 
-		left = infix(left)
-		c = p.Lexer.PeekToken()
+		postfix := p.postfixFns[cur.Type]
+		if postfix != nil {
+			newLeft := postfix(left)
+			if newLeft == nil {
+				break
+			}
+			left = newLeft
+			cur = p.Lexer.PeekToken()
+			continue
+		}
+
+		break
 	}
 
 	return left
